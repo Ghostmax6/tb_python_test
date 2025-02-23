@@ -1,46 +1,51 @@
+import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 
-# Define the command handler for the /start command
-def start(update: Update, context: CallbackContext) -> None:
+# Replace with your bot token
+BOT_TOKEN = "8161726582:AAHqnPDmFnapvEDHt18PWbC8AziL-8LfAkg"
+
+# Enable logging
+logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Start command
+from telegram import ReplyKeyboardMarkup
+
+# async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+#     keyboard = [["Button 1", "Button 2"], ["Button 3"]]
+#     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+
+#     await update.message.reply_text("Choose an option:", reply_markup=reply_markup)
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
-        [
-            [InlineKeyboardButton("Option 1", callback_data='1')],
-            [InlineKeyboardButton("Option 2", callback_data='2')],
-        ]
+        [InlineKeyboardButton("Option 1", callback_data="option1")],
+        [InlineKeyboardButton("Option 2", callback_data="option2")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text('Please choose:', reply_markup=reply_markup)
 
+    await update.message.reply_text("Choose an option:", reply_markup=reply_markup)
 
-#Define the callback handler for button presses
-def button(update: Update, context: CallbackContext) -> None:
+# Button click handler
+async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    query.answer()
-    query.edit_message_text(text=f"Selected option: {query.data}")
+    await query.answer()
 
-#Define the main function to start the bot
+    if query.data == "option1":
+        await query.edit_message_text(text="You selected Option 1!")
+    elif query.data == "option2":
+        await query.edit_message_text(text="You selected Option 2!")
 
-def main() -> None:
-    #Replace 'YOUR_TOKEN' with your bot's token
-    updater = Updater("YOUR_TOKEN")
+# Main function
+def main():
+    app = Application.builder().token(BOT_TOKEN).build()
 
-    #Get the dispatcher to register handlers
-    dispatcher = updater.dispatcher
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(button_click))
 
-    # Register the /start command handler
-    dispatcher.add_handler(CommandHandler("start", start))
+    logger.info("Bot is running...")
+    app.run_polling()
 
-    # Register the callback query handler
-    dispatcher.add_hander(CallbackQueryHandler(button))
-
-    # Start the Bot
-    updater.start_polling()
-
-    # Run the bot until you send a signal to stop
-    updater.idle()
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
-
-    
